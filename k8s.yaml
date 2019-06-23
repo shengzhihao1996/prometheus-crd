@@ -1,0 +1,100 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: prom-addon
+  namespace: monitoring
+spec:
+  rules:
+  - host: prom-addon.product.co-mall
+    http:
+      paths:
+      - backend:
+          serviceName: prometheus-addon
+          servicePort: 80
+        path: /testurl
+      - backend:
+          serviceName: prometheus-addon
+          servicePort: 80
+        path: /testport
+---
+apiVersion: v1
+data:
+  config: |
+    ---
+    ip:
+      -
+        range: "10.90.28.51/32:21036"
+        name: "mongodb_3.6"
+      -
+        range: "10.90.28.51/32:21030"
+        name: "mongodb_3.0"
+      -
+        range: "10.90.28.51/32:21040"
+        name: "mongodb_4.0"
+      -
+        range: "10.90.28.50/32:3356"
+        name: "mysql_3.6"
+      -
+        range: "10.90.28.50/32:3357"
+        name: "mysql_3.7"
+      -
+        range: "10.90.28.50/32:3355"
+        name: "mysql_3.5"
+      -
+        range: "10.90.26.179/32:80"
+        name: "comall_nginx_proxy"
+    url:
+      -
+        name: "https://rancher.product.co-mall"
+    timeout: 5
+    concurrency: 100
+kind: ConfigMap
+metadata:
+  name: prometheus-addon
+  namespace: monitoring
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-addon
+  namespace: monitoring
+  labels:
+    app: myapp
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: myapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-addon
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp
+        image: harbor.product.co-mall/paas/prom-jiankong:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8000
+        volumeMounts:
+        - mountPath: /etc/app
+          name: config-volume
+      volumes:
+      - configMap:
+          name: prometheus-addon
+        name: config-volume

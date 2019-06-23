@@ -1,0 +1,15 @@
+---
+ip:
+  -
+    range: "10.90.28.52/32:8001"
+    name: "mongodb_3.6"
+  -
+    range: "127.0.0.1/32:8002"
+    name: "mongodb_3.0"
+  -
+    range: "127.0.0.1/32:8003"
+    name: "mongodb_4.0"
+url:
+  - name: "https://www.baidu.com"
+timeout: 5
+concurrency: 100
